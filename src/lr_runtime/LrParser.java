@@ -18,40 +18,45 @@ import java.util.zip.*;
  */
 public abstract class LrParser {
     final ParseTable table;
-    
+
+    static final int DEFAULT_PARSER = 0;
+
+    private final Map<Integer, ParserInstance> instances = new HashMap<Integer, ParserInstance>();
+    private int nextInstance = DEFAULT_PARSER + 1;
+
     static final int DEFERED_TOKENS_LENGTH = 20;
     static final int MAX_REPAIR_CHANGES = 1;
     static final int REPAIR_FORWARD_TOKENS = 4;
-    
+
     public LrParser(String ... parseTable) {
         table = decode(parseTable);
     }
-    
+
     /* Parse a file.  Returns the value of the start symbol, or null on error  */
     public Object parse(Scanner lex, TokenFactory factory) {
-        
-        LinkedList<Token> defered = new LinkedList<Token>();
-        ParseStackActions parserStack = new ParseStackActions(this, factory);
-        
-        Parser<ParseStackActions> parser = 
-                new Parser<ParseStackActions>(parserStack, new QueueScanner(defered), new RepairParseTable(table));
-        
-        CheckpointScanner scanner = new CheckpointScanner(lex);
-        StateStackActions stateStack = new StateStackActions(this, defered, parser, scanner, factory);
-        
-        Parser<StateStackActions> stateParser = 
-                new Parser<StateStackActions>(stateStack, scanner, table);
-        
+        instances.put(DEFAULT_PARSER, new ParserInstance(lex, factory, this));
         Action.Performed p;
         
         do {
-            p = stateParser.nextToken();
+            ParserInstance parser;
+            Token lookahead;
+
+            try {
+                lookahead = lex.nextSymbol();
+            } catch(ScannerException e) {
+                throw new Error(e);
+            } catch(IOException e) {
+                throw new Error(e);
+            }
+
+            parser = instances.get(lookahead.parser);
+            p = parser.nextToken(lookahead);
         } while(!p.finalState());
         
         if(p == Action.Performed.ERROR) {
             return null;
         } else {
-            return parserStack.getStackTop();
+            return instances.get(DEFAULT_PARSER).getStackTop();
         }
     }
     

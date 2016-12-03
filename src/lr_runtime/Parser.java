@@ -13,35 +13,18 @@ import java.io.IOException;
  */
 class Parser<T extends StackActions> {
     final T actions;
-    private final Scanner lex;
     private final LrParseTable table;
 
-    public Parser(T actions, Scanner lex, LrParseTable table) {
+    public Parser(T actions, LrParseTable table) {
         this.actions = actions;
-        this.lex = lex;
         this.table = table;
     }
     
     /* Do exactly one step of parsing(see Action for definition of 'step')
      * 
      */
-    public Action.Performed nextToken() {
+    public Action.Performed nextToken(Token lookahead) {
         Action.Performed p;
-        Token lookahead;
-        
-        while(true) {
-            /* Get the lookahead character(need to handle scanner errors) */
-            try {
-                lookahead = lex.nextSymbol();
-            } catch(ScannerException e) {
-                actions.scannerError();
-                continue;
-            } catch(IOException e) {
-                throw new Error(e);
-            }
-            
-            break;
-        }
         
         do {
             /* Find the action (shift, reduce, etc) and perform it */

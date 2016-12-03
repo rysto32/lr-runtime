@@ -17,7 +17,7 @@ public class QueueScanner implements Scanner {
         this.queue = queue;
     }
 
-    public Token nextSymbol() throws ScannerException {
+    public Token nextSymbol() {
         return queue.remove();
     }
 }

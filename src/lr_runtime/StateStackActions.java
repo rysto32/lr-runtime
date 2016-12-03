@@ -59,7 +59,7 @@ class StateStackActions implements StackActions {
         defered.add(lookahead);
 
         while(defered.size() > LrParser.DEFERED_TOKENS_LENGTH) {
-            parser.nextToken();
+            parser.nextToken(defered.poll());
         }
 
         stateStack.push(s.dest);
@@ -100,7 +100,7 @@ class StateStackActions implements StackActions {
             
             // Make the parse stack parser completely catch up.
             while(!defered.isEmpty()) {
-                Performed result = parser.nextToken();
+                Performed result = parser.nextToken(defered.poll());
                 
                 if(result.finalState() && !defered.isEmpty()) {
                     throw new Error();
@@ -166,7 +166,7 @@ class StateStackActions implements StackActions {
                 
                 // create the temporary parser
                 RepairStackActions actions = new RepairStackActions(parser.actions, parent, scanner);
-                Parser<RepairStackActions> p = new Parser<RepairStackActions>(actions, scanner, 
+                Parser<RepairStackActions> p = new Parser<RepairStackActions>(actions,
                         new RepairParseTable(parent.table));
                 
                 //System.err.println("Try repair " + repair);
@@ -174,7 +174,7 @@ class StateStackActions implements StackActions {
                 // distance is the number of tokens we parse
                 int distance;
                 for(distance = 0; distance < queueLen; distance++) {
-                    Performed result = p.nextToken();
+                    Performed result = p.nextToken(scanner.nextSymbol());
                     
                     if(result.finalState()) {
                         break;
@@ -219,7 +219,7 @@ class StateStackActions implements StackActions {
         // first make sure that the parse stack finishes its parse
         defered.add(lookahead);
         while(!defered.isEmpty()) {
-            parser.nextToken();
+            parser.nextToken(defered.poll());
         }
         
         // if we ever saw any errors, return ERROR

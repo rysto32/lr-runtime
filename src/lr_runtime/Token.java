@@ -21,6 +21,7 @@ public abstract class Token<E> {
     protected int sym;
     protected int line;
     protected int column;
+    protected int parser;
     public E value;
     
     
@@ -31,6 +32,7 @@ public abstract class Token<E> {
         value = v;
         line = l;
         column = c;
+        parser = LrParser.DEFAULT_PARSER;
     }
 
     public int getColumn() {
@@ -47,5 +49,9 @@ public abstract class Token<E> {
     
     public String toString() {
         return "Token(" + sym + ")";
+    }
+
+    public void setState(int state) {
+        this.state = state;
     }
 }
