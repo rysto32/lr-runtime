@@ -35,6 +35,15 @@ public abstract class Token<E> {
         parser = LrParser.DEFAULT_PARSER;
     }
 
+    Token(Token<E> t) {
+        this.sym = t.sym;
+        this.line = t.line;
+        this.column = t.column;
+        this.parser = t.parser;
+        this.value = t.value;
+        this.state = t.state;
+    }
+
     public int getColumn() {
         return column;
     }
@@ -51,7 +60,7 @@ public abstract class Token<E> {
         return "Token(" + sym + ")";
     }
 
-    public void setState(int state) {
-        this.state = state;
+    public void setParser(int parser) {
+        this.parser = parser;
     }
 }

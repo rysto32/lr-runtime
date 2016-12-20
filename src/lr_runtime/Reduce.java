@@ -32,6 +32,6 @@ public class Reduce implements Action {
     }
 
     public String toString(List<?> prodList) {
-        return toString() + prodList.get(productionId);
+        return toString() + " (" + prodList.get(productionId) + ")";
     }
 }

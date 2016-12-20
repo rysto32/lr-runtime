@@ -12,9 +12,9 @@ import lr_runtime.Action.Performed;
  * The actions that we perform on the state stack.  This class implements
  * error recovery.
  */
-class StateStackActions implements StackActions {
+class StateStackActions implements StackActions<StateStackActions> {
     /* Our stack of states.  The top of the stack is our current state */
-    private final Stack<Integer> stateStack = new Stack<Integer>();
+    private final Stack<Integer> stateStack;
     
     /* The LrParser we belong to */
     private final LrParser parent;
@@ -29,18 +29,38 @@ class StateStackActions implements StackActions {
     private final Parser<ParseStackActions> parser;
     
     /* The scanner that gives us tokens */
-    private final CheckpointScanner lex;
+    //private final CheckpointScanner lex;
 
     StateStackActions(LrParser parent, LinkedList<Token> defered, 
             Parser<ParseStackActions> parser, CheckpointScanner lex, TokenFactory f) 
     {
+        this.stateStack = new Stack<Integer>();
         this.parent = parent;
         this.defered = defered;
         this.parser = parser;
-        this.lex = lex;
-        factory = f;
+        //this.lex = lex;
+        this.factory = f;
         
         stateStack.push(parent.getStartState());
+    }
+    
+    private StateStackActions(StateStackActions a, LinkedList<Token> deferred, 
+            Parser<ParseStackActions> parser) {
+        stateStack = (Stack<Integer>)a.stateStack.clone();
+        this.parent = a.parent;
+        this.factory = a.factory;
+        this.defered = deferred;
+        this.parser = parser;
+        //this.lex = new CheckpointScanner(lex)
+    }
+    
+    public StateStackActions branch() {
+        Parser newParser = parser.branch();
+
+        LinkedList<Token> deferred = new LinkedList<Token>();
+        StateStackActions newStateStack = new StateStackActions(this, deferred, newParser);
+        
+        return newStateStack;
     }
 
     public Performed visitReduce(Reduce r, Token t) {
@@ -80,7 +100,7 @@ class StateStackActions implements StackActions {
         
         // checkpoint the lexer so we can keep returning to this point in the
         //   parse while we look for a repair
-        lex.checkpoint();
+        //lex.checkpoint();
         
         // find the best repair
         SortedSet<Repair> best = findRepair(lookahead);
@@ -111,7 +131,7 @@ class StateStackActions implements StackActions {
             copyParserStack();
             
             // we're done, so clear the checkpoint
-            lex.clearCheckpoint();
+            //lex.clearCheckpoint();
             return Performed.REPAIRED;
         }
     }
@@ -153,7 +173,7 @@ class StateStackActions implements StackActions {
                 int minDistance = tokens.size();
                 
                 // reset to our checkpoint
-                lex.reset();
+                //lex.reset();
                 
                 //add a few extra tokens so we know how far we can get
                 addForwardTokens(tokens);
@@ -201,7 +221,7 @@ class StateStackActions implements StackActions {
     
     /* Add some extra tokens to the list from the lexer */
     private void addForwardTokens(Queue<Token> tokens) {
-        for(int i = 0; i < LrParser.REPAIR_FORWARD_TOKENS; i++) {
+       /*for(int i = 0; i < LrParser.REPAIR_FORWARD_TOKENS; i++) {
             while(true) {
                 try {
                     tokens.add(lex.nextSymbol());
@@ -212,7 +232,7 @@ class StateStackActions implements StackActions {
                 break;
             }
             
-        }
+        }*/
     }
 
     public Action.Performed visitAccept(Accept a, Token lookahead) {

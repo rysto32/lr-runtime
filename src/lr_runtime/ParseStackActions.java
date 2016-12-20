@@ -11,7 +11,7 @@ import lr_runtime.Action.Performed;
 /**
  * The actions performed by the parse stack
  */ 
-class ParseStackActions implements StackActions {
+class ParseStackActions implements StackActions<ParseStackActions> {
     private final Stack<Token> parseStack = new Stack<Token>();
     
     private final LrParser parser;
@@ -24,6 +24,23 @@ class ParseStackActions implements StackActions {
         this.parser = parser;
         parserState = parser.getStartState();
         factory = f;
+    }
+    
+    private ParseStackActions(ParseStackActions template) {
+        parser = template.parser;
+        factory = template.factory;
+        parserState = template.parserState;
+        haveError = template.haveError;
+
+        for (Token t : template.parseStack) {
+            Token copy = factory.makeToken(t.sym, t.value, t.line, t.column);
+            copy.state = t.state;
+            parseStack.push(copy);
+        }
+    }
+    
+    public ParseStackActions branch() {
+        return new ParseStackActions(this);
     }
     
     public Object getStackTop() {

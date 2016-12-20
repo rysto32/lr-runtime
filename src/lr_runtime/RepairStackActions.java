@@ -13,7 +13,7 @@ import lr_runtime.Action.Performed;
  * it can go.  The RepairStackActions are used to implement a parser checks how
  * good a repair is.
  */
-class RepairStackActions implements StackActions {
+class RepairStackActions implements StackActions<RepairStackActions> {
     private final Stack<Integer> stateStack = new Stack<Integer>();
     private final LrParser parent;
     private final Scanner lex;
@@ -61,6 +61,10 @@ class RepairStackActions implements StackActions {
         stateStack.push(s.dest);
 
         return Performed.SHIFT;
+    }
+
+    public RepairStackActions branch() {
+        throw new UnsupportedOperationException("Not supported.");
     }
 
     

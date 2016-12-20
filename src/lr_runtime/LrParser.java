@@ -60,6 +60,20 @@ public abstract class LrParser {
         }
     }
     
+    /**
+     * Branch the state of the given parser.
+     * @param instance The instance number of the parser to branch
+     * @return The instance number of the new parser.
+     */
+    public int branchParser(int instance) {
+        int newInstance = nextInstance;
+        nextInstance++;
+        
+        ParserInstance newParser = instances.get(instance).branch();
+        instances.put(newInstance, newParser);
+        return newInstance;
+    }
+    
     /* Return the number of the start state */
     protected abstract int getStartState();
     

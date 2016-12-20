@@ -15,6 +15,7 @@ class ParserInstance {
     private final Parser<ParseStackActions> parser;
     private final Parser<StateStackActions> stateParser;
     private final ParseStackActions parserStack;
+    private final LrParser lrParser;
     
     ParserInstance(Scanner lex, TokenFactory factory, LrParser lrParser) {
         LinkedList<Token> defered = new LinkedList<Token>();
@@ -27,6 +28,22 @@ class ParserInstance {
         StateStackActions stateStack = new StateStackActions(lrParser, defered, parser, scanner, factory);
         
         stateParser = new Parser<StateStackActions>(stateStack, lrParser.table);
+        this.lrParser = lrParser;
+    }
+
+    private ParserInstance(Parser<ParseStackActions> parser,
+            Parser<StateStackActions> stateParser, ParseStackActions parserStack,
+            LrParser lrParser) {
+        this.parser = parser;
+        this.stateParser = stateParser;
+        this.parserStack = parserStack;
+        this.lrParser = lrParser;
+    }
+    
+    ParserInstance branch() {
+        ParseStackActions newParserStack = parserStack.branch();
+        Parser<ParseStackActions> newParser = new Parser<ParseStackActions>(parserStack, lrParser.table);
+        return new ParserInstance(newParser, stateParser.branch(), newParserStack, lrParser);
     }
     
     Action.Performed nextToken(Token lookahead) {

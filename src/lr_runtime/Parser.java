@@ -5,19 +5,30 @@
 
 package lr_runtime;
 
-import java.io.IOException;
-
 /**
  *  Class that actually implements the LR parsing algorithm.  The actions variable
  * holds all of the parsing state and does most of the work.
  */
-class Parser<T extends StackActions> {
+class Parser<T extends StackActions<T>> {
     final T actions;
     private final LrParseTable table;
 
     public Parser(T actions, LrParseTable table) {
         this.actions = actions;
         this.table = table;
+    }
+    
+    private Parser(Parser<T> p) {
+        this.actions = p.actions.branch();
+        this.table = p.table;
+    }
+    
+    Parser<T> branch() {
+        return new Parser(this);
+    }
+    
+    T getActions() {
+        return actions;
     }
     
     /* Do exactly one step of parsing(see Action for definition of 'step')
